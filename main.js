@@ -1,36 +1,128 @@
 // GET REQUEST
-function getTodos() {
-  console.log('GET Request');
+//Long way
+// function getTodos() {
+//   axios({
+//     method:'get',
+//     url:'https://jsonplaceholder.typicode.com/todos',
+//     //paramters for url
+//     params:{
+//       _limit:5
+//     }
+//   })
+//can also write url as https://jsonplaceholder.typicode.com/todos?_limit=5
+//   //status:successful and 200 is the number of data
+//   //we passed an object to axios method and it will return a promis
+//   .then((res)=>console.log(res.data))
+//   .catch((e)=> console.error(e));
+// }
+
+//Short way
+//it will work even without writing get explicitly
+function getTodos(){
+  axios.get('https://jsonplaceholder.typicode.com/todos',{params:{
+    _limit:5}
+  }).then((res)=>showOutput(res))
+  .catch((e)=>console.error(e))
 }
 
+// function addTodo() {
+//   axios({
+//     method:'post',
+//     url:'https://jsonplaceholder.typicode.com/todos',
+//     data{
+  //  title:'new todo,
+  //  completed:false
+  //
+      //}
+//   })
 // POST REQUEST
 function addTodo() {
-  console.log('POST Request');
+  axios.post('https://jsonplaceholder.typicode.com/todos',{
+    title:'New Todo',
+    completed:false
+    }
+  ).then((res)=>showOutput(res))
+  .catch((e)=>console.error(e))
 }
-
-// PUT/PATCH REQUEST
+/*
+put- it is meant to replace the entire resourse(doesnt show user id)
+patch- update incremently (will show user id)
+*/ 
+// PUT/PATCH REQUEST--Note: we have to add id in the end of the url
 function updateTodo() {
-  console.log('PUT/PATCH Request');
+  axios.patch('https://jsonplaceholder.typicode.com/todos/1',{
+    title:'New Todo',
+    completed:false
+    }
+  ).then((res)=>showOutput(res))
+  .catch((e)=>console.error(e))
 }
 
-// DELETE REQUEST
+// DELETE REQUEST--Note: we have to add id in the end of the url
 function removeTodo() {
-  console.log('DELETE Request');
+  axios.delete('https://jsonplaceholder.typicode.com/todos/1'
+  ).then((res)=>showOutput(res))
+  .catch((e)=>console.error(e))
 }
 
 // SIMULTANEOUS DATA
+/*
+we can do simultanaeous request using azios.all as well
+
 function getData() {
-  console.log('Simultaneous Request');
+  axios.all([axios.get('https://jsonplaceholder.typicode.com/todos?_limit=5'),
+axios.get('https://jsonplaceholder.typicode.com/posts?_limit=5')])
+.then((res) =>{
+  console.log(res[0]);
+  console.log(res[1]);
+  showOutput(res[1]);
+}).catch((e)=>console.log(e))
+}
+*/
+//spread takes a function as a parameter
+function getData() {  
+  axios.all([axios.get('https://jsonplaceholder.typicode.com/todos?_limit=5'),
+  axios.get('https://jsonplaceholder.typicode.com/posts?_limit=5')])
+  .then(axios.spread((todos, posts) =>{
+      console.log(todos);
+      showOutput(posts);
+  }))
+  .catch((e) => console.error(e));
 }
 
 // CUSTOM HEADERS
+//e.g, can be used for authentication token for login to do something
 function customHeaders() {
-  console.log('Custom Headers');
+  const config={
+    headers:{
+      'Content-Type':'application/json',//because data type is json
+      Authorization:'some token'
+    }
+  };
+  axios.post('https://jsonplaceholder.typicode.com/todos',{
+    title:'New Todo',
+    completed:false
+    },
+    config
+  ).then((res)=>showOutput(res))
+  .catch((e)=>console.error(e))
 }
 
 // TRANSFORMING REQUESTS & RESPONSES
 function transformResponse() {
-  console.log('Transform Response');
+  const options={
+    method:'post',
+    url:'https://jsonplaceholder.typicode.com/todos',
+    data:{
+      title:'hello world'
+    },
+    transformResponse: axios.defaults.transformResponse.concat(data =>{
+      data.title=data.title.toUpperCase();
+      return data;
+    })
+  };
+  axios(options).then(res => showOutput(res));
+  
 }
 
 // ERROR HANDLING
@@ -44,6 +136,15 @@ function cancelToken() {
 }
 
 // INTERCEPTING REQUESTS & RESPONSES
+axios.interceptors.request.use(
+  config =>{
+    console.log(`${config.method.toUpperCase()} request sent to ${config.url}
+    at ${new Date().getTime()}`);
+    return config;
+  },error =>{
+    return Promise.reject(error)
+  }
+);
 
 // AXIOS INSTANCES
 
