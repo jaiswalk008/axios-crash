@@ -1,3 +1,17 @@
+//AXIOS GLOBAL
+/*
+In the Axios library, the globals object is used to define default configurations
+ for all requests. These defaults are applied to every request made using the Axios instance,
+ unless the individual request configuration overrides them.
+
+Setting default headers: You can set headers that should be included in every request, such as an authorization token or content type.
+
+Setting a base URL: If you're making requests to a specific API endpoint, you can set the base URL in the globals object so that you don't have to include it in every request.
+axios.defaults.baseURL = 'https://api.example.com/';
+
+Setting a timeout: You can set a default timeout value for all requests, so that you don't have to specify it in each individual request.
+*/
+axios.defaults.headers.common['X-Auth-Token'] = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 // GET REQUEST
 //Long way
 // function getTodos() {
@@ -19,9 +33,8 @@
 //Short way
 //it will work even without writing get explicitly
 function getTodos(){
-  axios.get('https://jsonplaceholder.typicode.com/todos',{params:{
-    _limit:5}
-  }).then((res)=>showOutput(res))
+  axios.get('https://jsonplaceholder.typicode.com/todos?_limit=5',{timeout:5000})
+  .then((res)=>showOutput(res))
   .catch((e)=>console.error(e))
 }
 
@@ -127,12 +140,43 @@ function transformResponse() {
 
 // ERROR HANDLING
 function errorHandling() {
-  console.log('Error Handling');
+  axios.get('https://jsonplaceholder.typicode.com/todssos',{
+    // validateStatus:function(status){
+    //   return status<500;//rejects if the status is greater than or equal to 500
+    // }
+  })
+  .then(res => showOutput(res))
+  .catch((err)=>{
+    if(err.response){
+      //server responded with an error other than in the range of 200
+      console.log(err.response.data);
+      console.log(err.response.status)
+      console.log(err.response.header);
+      if(err.response.status===404) alert ('Error: Page Not Found');
+    }else if(err.request){
+      //re==Request was made but no response
+      console.log(err.request.status)
+    }else{
+      console.log(err.message);
+    }
+  })
 }
 
 // CANCEL TOKEN
 function cancelToken() {
-  console.log('Cancel Token');
+  const source = axios.CancelToken.source();
+  axios.get('https://jsonplaceholder.typicode.com/todos',{
+    cancelTokens:source.token
+  })
+  .then(res=>showOutput(res))
+  .catch((thrown)=>{
+    if(axios.isCancel(thrown)){
+      console.log('Request cancelled',thrown.message);
+    }
+  });
+  if(true){
+    source.cancel('Request cancelled!');
+  }
 }
 
 // INTERCEPTING REQUESTS & RESPONSES
@@ -147,6 +191,11 @@ axios.interceptors.request.use(
 );
 
 // AXIOS INSTANCES
+/*
+const axiosInstance = axios.create({
+  baseURL:'https://jsonplaceholder.typicode.com'
+});
+axiosInstance.get('/comments?_limit=5').then(res => showOutput(res));*/
 
 // Show output in browser
 function showOutput(res) {
